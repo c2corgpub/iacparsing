@@ -1,0 +1,37 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  environment: 'dev'
+
+stages:
+- stage: Deploy
+  jobs:
+  - job: Terraform
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'
+        addToPath: true
+
+    - task: TerraformInstaller@0
+      inputs:
+        terraformVersion: '1.5.0'
+
+    - script: |
+        terraform init
+      displayName: 'Terraform Init'
+      workingDirectory: $(Build.SourcesDirectory)/terraform_storage
+
+    - script: |
+        terraform plan -out=tfplan -var-file=terraform.tfvars
+      displayName: 'Terraform Plan'
+      workingDirectory: $(Build.SourcesDirectory)/terraform_storage
+
+    - script:  |
+        terraform apply -auto-approve tfplan
+      displayName: 'Terraform Apply'
+      workingDirectory: $(Build.SourcesDirectory)/terraform_storage

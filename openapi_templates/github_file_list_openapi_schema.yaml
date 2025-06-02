@@ -1,0 +1,38 @@
+openapi: 3.0.0
+
+info:
+    title: GitHub Advanced Security for GitHub Organizations
+    description: Skills to retrieve Code Scanning, Dependabot Scanning and Secret Scanning alerts for the default branch of
+        all the repositiories (repo) of the specified Organization in GitHub. 
+        These scannings are executed by GitHub Advanced Security (GhAS).
+    version: "0.0.1"
+
+paths:
+    ../../repos/{org}/{repository}/contents/{sub_path}:
+        get: 
+            operationId: GetSampleGitHubRepositoryFileList
+            summary: Get the list of files from a GitHub repository.
+            parameters:
+                - in: path
+                  name: org
+                  schema:
+                    type: string
+                  required: true
+                  description: GitHub organization name.
+                - in: path
+                  name: repository
+                  schema:
+                    type: string
+                  required: true
+                  description: GitHub repository name.
+                - in: path
+                  name: sub_path
+                  schema:
+                    type: string
+                  required: false
+                  description: Sub-path inside the Github repository.
+            responses:
+                200:
+                    description: Successful retrieval of list. 
+                401:
+                    description: Unsuccessful authentication.

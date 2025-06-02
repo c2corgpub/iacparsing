@@ -4,15 +4,6 @@ Descriptor:
   Description: Skills to retrieve code scanning, secret scanning and dependabot results (alerts) executed by GitHub Advanced Security (GhAS)
       on all the repositories of a specified GitHub organization 
 
-  Settings:
-    - Name: RepoGitHubOrganizationUrl
-      Label: Git Hub API URL for Organizations
-      Description: The URL of the GitHub API for accessing your Organization. Specify the name of your Organization.
-      HintText: "https://api.github.com/orgs/MyOrganizationName"
-      DefaultValue: "https://api.github.com/orgs/<InsertYourOrganizationNameHere>"
-      SettingType: String
-      Required: true
-
   SupportedAuthTypes:
     - ApiKey
   Authorization:
@@ -25,4 +16,3 @@ SkillGroups:
   - Format: API
     Settings:
       OpenApiSpecUrl: https://raw.githubusercontent.com/c2corgpub/iacparsing/refs/heads/main/openapi_templates/github_file_list_openapi_schema.yaml
-      EndpointUrlSettingName: RepoGitHubOrganizationUrl

@@ -11,7 +11,9 @@ paths:
     ../../repos/{org}/{repository}/contents/{sub_path}:
         get: 
             operationId: GetSampleGitHubRepositoryFileList
-            summary: Get the list of files from a GitHub repository.
+            summary: Get the list of files from a GitHub repository. Each item will have a 'path' and the 'type'.
+                If the 'type' is 'file', add it to the output list. In case of the 'type' is 'dir', substitute
+                that in 'sub_path' and call this skill again. Add the output to the original list of files.
             parameters:
                 - in: path
                   name: org

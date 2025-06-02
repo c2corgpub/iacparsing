@@ -7,8 +7,11 @@ info:
         These scannings are executed by GitHub Advanced Security (GhAS).
     version: "0.0.1"
 
+servers:
+  - url: https://api.github.com/repos
+
 paths:
-  https://api.github.com/repos/{org}/{repository}/contents/{sub_path}:
+  /{org}/{repository}/contents/{sub_path}:
     get:
       operationId: GetSampleGitHubRepositoryFileList
       summary: >

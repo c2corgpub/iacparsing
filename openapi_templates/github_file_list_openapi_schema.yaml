@@ -8,11 +8,11 @@ info:
     version: "0.0.1"
 
 servers:
-  - url: https://api.github.com/repos/
+  - url: https://api.github.com/repos
 
 
 paths:
-    {org}/{repository}/contents/{sub_path}:
+    /{org}/{repository}/contents/{sub_path}:
         get: 
             operationId: GetSampleGitHubRepositoryFileList
             summary: Get the list of files from a GitHub repository. Each item will have a 'path' and the 'type'.

@@ -11,13 +11,35 @@ servers:
   - url: https://api.github.com/repos
 
 paths:
+  /{org}/{repository}/contents/:
+    get:
+      operationId: GetGitHubRepositoryRootDirFileList
+      summary: >
+        Get the list of files from the root directory of a GitHub repository.
+      parameters:
+        - in: path
+          name: org
+          schema:
+            type: string
+          required: true
+          description: GitHub organization name.
+        - in: path
+          name: repository
+          schema:
+            type: string
+          required: true
+          description: GitHub repository name.
+      responses:
+        '200':
+          description: Successful retrieval of list.
+        '401':
+          description: Unsuccessful authentication.
+
   /{org}/{repository}/contents/{sub_path}:
     get:
-      operationId: GetSampleGitHubRepositoryFileList
+      operationId: GetGitHubRepositoryChildDirFileList
       summary: >
-        Get the list of files from a GitHub repository. Each item will have a 'path' and the 'type'.
-        If the 'type' is 'file', add it to the output list. In case the 'type' is 'dir', substitute
-        that in 'sub_path' and call this skill again. Add the output to the original list of files.
+        Get the list of files from any directory specified in a GitHub repository.
       parameters:
         - in: path
           name: org
@@ -35,14 +57,8 @@ paths:
           name: sub_path
           schema:
             type: string
-          required: false
-          description: Sub-path inside the GitHub repository.
-        - in: header
-          name: User-Agent 
-          schema:
-            type: string
           required: true
-          description: User-Agent (You can write any text here. This parameter is added as a temporary workaround to make the call succeed)          
+          description: Sub-path inside the GitHub repository.
       responses:
         '200':
           description: Successful retrieval of list.

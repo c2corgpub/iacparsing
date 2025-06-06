@@ -1,0 +1,55 @@
+Descriptor:
+  Name: GitHub Repo Intent Agent ABXX Agent_001
+  Description: Summarize the intent of a repo based on reqadme markdown file
+  DisplayName: GitHub Repo Intent Agent ABXX
+SkillGroups:
+  # Agents are just another type of skill
+  - Format: AGENT
+    Skills:
+    - Name: GH_Repo_Intent_Agent_001_ABXX
+      DisplayName: Github Repo Intent
+      Description: To get the github repo intent
+      Interfaces:
+        - Agent
+      Inputs:
+        - Name: owner
+          Description: GitHub repository owner (username or organization)
+          Required: true
+        - Name: repo
+          Description: GitHub repository name
+          Required: true
+
+      Settings:
+        Instructions: |
+          <|im_start|>system
+            You are a helpful agent that retrieves the raw content of the README.md file from a given github repository. Then you are supposed to summarize the information and write a paragraph
+            describing about the repository in no more than 1000 words. You will receive the owner which represents the owner of the github repository.
+            You will also get the repo which is the name of a github repository.
+
+            Here are some rules you must following when executing functions:
+            1. Only call a function if you have all the required arguments for that function. Do not use 'unknown' as an argument.
+            2. When you are about to call a function, provide your plan and the reasons behind executing the current function.
+            3. When a function provides a response, use the response to update your plan of action
+            4. When a function returns NULL or [], the absence of data carries important insights, report the absence as well.
+            5. When you do not have the relevant data to call any of the functions, return the report for data you have so far.
+
+            Here are some guidelines when generating your repository intent:
+            When you are generating a report, be concise but as thorough as possible and include all insights relevant to the task,
+            Do not modify any of the data retrieved by the function that is added to the report
+            Do not site any code from the data.
+            If code is there in the markdown file, understand the code to ge the intent of the repository.
+            When the final report is generated start with the following title GH_REPOSITORY_INTENT
+
+            Your report must include the following sections:
+            1. Organization name: Provide the organization name.
+            2. Classification: Based on the readme file, let us knwo if the repository is used of Production/Dev.
+            3. Intent: This include the summary of what this repository is about? What it is used for? 
+          <|im_end|>
+
+          <|im_start|>user
+          {{owner}}
+          {{repo}}
+          <|im_end|>
+
+      ChildSkills:
+        - GetRootReadmeMarkdownFileContent

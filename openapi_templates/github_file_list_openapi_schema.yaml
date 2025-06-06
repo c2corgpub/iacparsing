@@ -8,10 +8,10 @@ info:
     version: "0.0.1"
 
 servers:
-  - url: https://api.github.com/repos
+  - url: https://api.github.com
 
 paths:
-  /{org}/{repository}/contents/:
+  /repos/{org}/{repository}/contents/:
     get:
       operationId: GetGitHubRepositoryRootDirFileList
       summary: >
@@ -35,7 +35,7 @@ paths:
         '401':
           description: Unsuccessful authentication.
 
-  /{org}/{repository}/contents/{sub_path}:
+  /repos/{org}/{repository}/contents/{sub_path}:
     get:
       operationId: GetGitHubRepositoryChildDirFileList
       summary: >
@@ -65,3 +65,68 @@ paths:
         '401':
           description: Unsuccessful authentication.
 
+  /repos/{owner}/{repo}/contents/README.md:
+    get:
+      operationId: GetRootReadmeMarkdownFileContent
+      summary: >
+        Get raw content of README.md
+      description: |
+        Returns the raw Markdown content of the README.md file in the given GitHub repository.
+        This only works for public repositories.
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          description: GitHub repository owner (username or organization)
+          schema:
+            type: string
+          example: huggingface
+        - name: repo
+          in: path
+          required: true
+          description: GitHub repository name
+          schema:
+            type: string
+          example: transformers
+        - name: Accept
+          in: header
+          required: false
+          description: |
+            Set to 'application/vnd.github.v3.raw' to get raw content.
+            Default returns JSON with Base64-encoded content.
+          schema:
+            type: string
+            default: application/vnd.github.v3.raw
+      responses:
+        '200':
+          description: Raw content of README.md
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # Transformers
+                  🤗 Transformers: State-of-the-art Natural Language Processing for Pytorch, TensorFlow, and JAX.
+        '404':
+          description: Repository or README.md not found
+        '403':
+          description: Rate limit exceeded or forbidden
+
+  /search/code:
+    get:
+      operationId: GetListOfAllMarkdownFiles
+      summary: >
+        Get the list of all the markdown files from the provided GH repository.
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: true
+          description: Search query, including repo and file extension.
+          example: repo:huggingface/transformers+extension:md
+      responses:
+        '200':
+          description: Successful retrieval of list of .md files.
+        '401':
+          description: Unsuccessful authentication.

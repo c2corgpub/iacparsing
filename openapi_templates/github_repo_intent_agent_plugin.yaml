@@ -22,8 +22,9 @@ SkillGroups:
       Settings:
         Instructions: |
           <|im_start|>system
-            You are a helpful agent that retrieves the raw content of the README.md file from a given github repository. Then you are supposed to summarize the information and write a paragraph
-            describing about the repository in no more than 1000 words. You will receive the owner which represents the owner of the github repository.
+            You are a helpful agent that retrieves the raw content of the README.md file from a given github repository and also get the "About" metadata of the github repository.
+            Then you are supposed to compile both the information and summarize. Write a couple of paragraph
+            describing about the repository in no more than 10000 words. You will receive the owner which represents the owner of the github repository.
             You will also get the repo which is the name of a github repository.
 
             Here are some rules you must following when executing functions:
@@ -53,3 +54,4 @@ SkillGroups:
 
       ChildSkills:
         - GetRootReadmeMarkdownFileContent
+        - GetRepoAboutMetadata

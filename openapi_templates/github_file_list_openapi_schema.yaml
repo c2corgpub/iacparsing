@@ -93,7 +93,7 @@ paths:
           required: false
           description: |
             Set to 'application/vnd.github.v3.raw' to get raw content.
-            Default returns JSON with Base64-encoded content.
+            Otherwise returns JSON with Base64-encoded content.
           schema:
             type: string
             default: application/vnd.github.v3.raw
@@ -116,7 +116,7 @@ paths:
     get:
       operationId: GetListOfAllMarkdownFiles
       summary: >
-        Get the list of all the markdown files from the provided GH repository.
+        Get the list of all the Markdown files from the provided GH repository.
       parameters:
         - in: query
           name: q
@@ -130,3 +130,69 @@ paths:
           description: Successful retrieval of list of .md files.
         '401':
           description: Unsuccessful authentication.
+
+  /repos/{owner}/{repo}:
+    get:
+      operationId: GetRepoAboutMetadata
+      summary: Get "About" metadata of a GitHub repository
+      description: >
+        Retrieves general metadata about a GitHub repository, including its description, homepage, topics, visibility, and more.
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          description: GitHub username or organization that owns the repository
+          schema:
+            type: string
+          example: huggingface
+        - name: repo
+          in: path
+          required: true
+          description: Name of the GitHub repository
+          schema:
+            type: string
+          example: transformers
+      responses:
+        '200':
+          description: Repository metadata returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  full_name:
+                    type: string
+                  description:
+                    type: string
+                  size:
+                    type: string
+                  subscribers_count:
+                    type: string
+                  network_count:
+                    type: string
+                  stargazers_count:
+                    type: string
+                  forks:
+                    type: string
+                  open_issues:
+                    type: string
+                  watchers:
+                    type: string
+                  homepage:
+                    type: string
+                  topics:
+                    type: array
+                    items:
+                      type: string
+                  visibility:
+                    type: string
+                  default_branch:
+                    type: string
+                  language:
+                    type: string
+                  html_url:
+                    type: string
+        '404':
+          description: Repository not found
+        '403':
+          description: Forbidden or rate limited

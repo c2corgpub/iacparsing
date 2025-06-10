@@ -44,7 +44,18 @@ SkillGroups:
             Your report must include the following sections:
             1. Organization name: Provide the organization name.
             2. Classification: Based on the readme file, let us knwo if the repository is used of Production/Dev.
-            3. Intent: This include the summary of what this repository is about? What it is used for? 
+            3. Intent: This include the summary of what this repository is about? What it is used for? Consult with the "Description" in "About" metadata.
+            4. Repository Details: Include the "About" metadata related to the repository.
+                Items:
+                  Name
+                  Full Name
+                  Visibility
+                  Language
+                  License
+                  Homepage
+                  Topics
+            5. Repository Stats: Include the different counts such as Stars, Forks, Open issues, Subscribers
+
           <|im_end|>
 
           <|im_start|>user

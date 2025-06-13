@@ -1,0 +1,59 @@
+Descriptor:
+  Name: Resource Intent GitHub Agent ABXX Agent_002
+  Description: For a given container-image, identify the github repo and Summarize the intent based on readme markdown file and about metadata
+  DisplayName: Resource Intent GitHub Agent ABXX Agent_002
+SkillGroups:
+  # Agents are just another type of skill
+  - Format: AGENT
+    Skills:
+    - Name: GH_Resource_Intent_Agent_002_ABXX
+      DisplayName: Github Resource Intent
+      Description: To get the resource intent of a container-image from the github it was pushed
+      Interfaces:
+        - Agent
+      Inputs:
+        - Name: container_image_name
+          Description: Name of a container-image (e.g. woodgrovecontainerreg.azurecr.io/customattacker)
+          Required: true
+      Settings:
+        Instructions: |
+          Follow the steps bellow:
+            1. Run GetOwnerAndRepoOfGitHubForGivenContainerImageName 
+            2. Get the 'owner' and the 'repo' 
+            3. Then call GH_Repo_Intent_Agent_001_ABXX to get the github repository intent
+      ChildSkills:
+        - GetOwnerAndRepoOfGitHubForGivenContainerImageName
+        - GH_Repo_Intent_Agent_001_ABXX
+
+  - Format: KQL
+    Skills: 
+      - Name: GetOwnerAndRepoOfGitHubForGivenContainerImageName
+        DisplayName: Get GitHub owner and repo for a given container-image name
+        Description: Get GitHub owner and repo for a given container-image name
+        Inputs:
+          - Name: container_image_name
+            Description: Name of a container-image
+            Required: true               
+        Settings:
+          Target: Defender
+          Template: |-
+            let CONTAINER_IMAGE_NAME = '{{container_image_name}}';
+            let ghrepo_name = ExposureGraphEdges
+            | where SourceNodeLabel == "githubrepository"
+            | where EdgeLabel == "pushes"
+            | where TargetNodeLabel ==  "container-image"
+            | where TargetNodeName startswith CONTAINER_IMAGE_NAME
+            | distinct SourceNodeName;
+            ExposureGraphNodes
+            | where NodeLabel == "githubrepository"
+            | project NodeName, EntityIds
+            | join kind = inner ghrepo_name on $left.NodeName == $right.SourceNodeName
+            | project EntityIds
+            | where EntityIds has "URL"
+            | mv-expand EntityIds
+            | project gh_repo_url = EntityIds["id"]
+            | extend repo_url_token = split(gh_repo_url, "/")
+            | where array_length(repo_url_token) == 5
+            | extend owner = repo_url_token[3], repo = repo_url_token[4]
+            | project owner, repo
+            | take 1;

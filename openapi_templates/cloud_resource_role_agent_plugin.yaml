@@ -17,13 +17,21 @@ SkillGroups:
             Required: true             
         Settings:
           Instructions: |
-            Get meta-data of the resource id: EKG_Resource_ID, which is the TargetResource. Get the Target Resource names, Target Resource Labels, Target Resource Tags and also similar information from the resourcegroup and subscription it is member of. Also get the neighboring meta data from neighboring resource groups and neighboring resources of the same parent resource group. Neighboring information should include the neighboring resource group names, neighboring resource group tags, neighboring resource names and neighboring resource tags at different resource types (or labels).
-            Use the meta data provided to determine the role of the resource EKG_Resource_ID, the type of environment it is deployed in, and the criticality of this resource in case of a security breach.
-
-            Your output must contain the role of the resource.
-            Your output must a score of High/Med/Low of security criticality. 
-            Your output must answer if this is a production environment, development environemnt, demo environment or other.
-            Provide explanation and evidence. Do not provide general explanations.
+            Given the EKG_Resource_ID, retrieve its meta-data including: resource name, labels, and tags, as well as similar meta-data from its associated resource group and subscription. Additionally, gather neighboring meta-data from:
+              Other resource groups within the same subscription (names and tags)
+              Other resources within the same parent resource group (names, labels, and tags)
+            Using only this meta-data (without displaying it), determine:
+              1. The role of the resource (e.g., app service, data layer, firewall, etc.)
+              2. The environment type it belongs to — choose from: Production, Development, Demo, or Other
+              3. The criticality level of the resource in case of a security breach — choose from: High, Medium, or Low
+            
+            **Your output must include only:
+              The resource role
+              The environment type
+              The security criticality score
+              A brief explanation with specific evidence from the meta-data
+              
+              Do not output the raw meta-data itself. Do not include general commentary. Be specific and context-driven.
 
         ChildSkills:                          
           - Get_metadata_for_a_resource_id

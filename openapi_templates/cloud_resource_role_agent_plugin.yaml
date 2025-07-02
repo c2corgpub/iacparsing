@@ -1,0 +1,97 @@
+Descriptor:
+  Name: SecurityExposureManagement
+  DisplayName: Microsoft Security Exposure Management
+  Description: Skills to manage security posture in customer environment
+  Category: Microsoft
+  Version: 0.0.1
+  
+SkillGroups:
+  - Format: Agent
+    Skills:
+      - Name: resource_classification_based_on_own_tags_and_peer_tags
+        DisplayName: Classify resources based on naming conventions, tags of its own and neighboring resources and also membership of resourcegroup and subscriptions
+        Description: Classify resource whether it is part of Production/Development/Integration/Testing by analyzing the naming conventions, tags of its own and neighboring resources and also membership of resourcegroup and subscriptions
+        Inputs:          
+          - Name: EKG_Resource_ID
+            Description: A Resource ID in EKG
+            Required: true             
+        Settings:
+          Instructions: |
+            Get meta-data of the resource id: EKG_Resource_ID, which is the TargetResource. Get the Target Resource names, Target Resource Labels, Target Resource Tags and also similar information from the resourcegroup and subscription it is member of. Also get the neighboring meta data from neighboring resource groups and neighboring resources of the same parent resource group. Neighboring information should include the neighboring resource group names, neighboring resource group tags, neighboring resource names and neighboring resource tags at different resource types (or labels).
+            Use the meta data provided to determine the role of the resource EKG_Resource_ID, the type of environment it is deployed in, and the criticality of this resource in case of a security breach.
+
+            Your output must contain the role of the resource.
+            Your output must a score of High/Med/Low of security criticality. 
+            Your output must answer if this is a production environment, development environemnt, demo environment or other.
+            Provide explanation and evidence. Do not provide general explanations.
+
+        ChildSkills:                          
+          - Get_metadata_for_a_resource_id
+
+
+  - Format: KQL         
+    Skills: 
+      - Name: Get_metadata_for_a_resource_id
+        DisplayName: Get metadata for resoure hierarchy
+        Description: Get name and tags for resource, resource group, and subscription, also names and tags of the resource neighbors and the resource-group neighbors
+        Inputs:        
+          - Name: EKG_Resource_ID
+            Description: A Resource ID in EKG
+            Required: true 
+        Settings:
+          Target: Defender
+          Template: |-
+            let RESOURCE_ID = '{{EKG_Resource_ID}}';              
+            ExposureGraphEdges
+            | where TargetNodeId == RESOURCE_ID
+            | where EdgeLabel == "contains"
+            | where SourceNodeLabel == "resourcegroups"
+            | project-rename RG2RES_Edge_Label=EdgeLabel
+            | join (ExposureGraphEdges | where SourceNodeLabel == "subscriptions" | where EdgeLabel == 'contains'| project-rename Sub_Name=SourceNodeName) on $left.SourceNodeId == $right.TargetNodeId
+            | project TargetRes_ID = TargetNodeId, TargetRes_Name = TargetNodeName, TargetRes_Label = TargetNodeLabel, 
+                      Sub_id=SourceNodeId1, Sub_Name, Sub2RG_Edge_Label=EdgeLabel, RG_ID=SourceNodeId, RG_Name=SourceNodeName, RG2RES_Edge_Label
+            | join ( ExposureGraphNodes | project NodeId, TargetNode_tags=NodeProperties.rawData.tags.tags) 
+                    on $left.TargetRes_ID == $right.NodeId 
+                    | project-away NodeId
+            | join ( ExposureGraphNodes | where NodeLabel == "resourcegroups" | project NodeId, RG_tags = NodeProperties.rawData.tags.tags) 
+                    on $left.RG_ID == $right.NodeId
+                    | project-away NodeId
+            | join ( ExposureGraphNodes | where NodeLabel == "subscriptions" | project NodeId, Sub_tags = NodeProperties.rawData.tags.tags) 
+                    on $left.Sub_id == $right.NodeId
+                    | project-away NodeId
+            // | GetSubName?? e.g., implement API call to https://management.azure.com/subscriptions?api-version=2016-06-01
+            | join ( // get neighbor_RGs
+                    ExposureGraphEdges
+                    | where TargetNodeLabel == "resourcegroups"
+                    | where EdgeLabel == "contains"
+                    | where SourceNodeLabel == "subscriptions"
+                    | project neighbor_RG=TargetNodeName,  SourceNodeId, neighbor_RG_Id=TargetNodeId
+                    ) on $left.Sub_id == $right.SourceNodeId
+                    | project-away SourceNodeId
+            | join ( ExposureGraphNodes | where NodeLabel == "resourcegroups" | project NodeId, neighbor_RG_tags=NodeProperties.rawData.tags.tags) on $left.neighbor_RG_Id == $right.NodeId
+                    | project-away NodeId, neighbor_RG_Id
+                    | summarize neighbor_RGs = strcat_array(make_list(neighbor_RG), ", "),
+                        neighbor_RG_Tags = strcat_array(make_list(neighbor_RG_tags), ", ")
+                        by TargetRes_ID, TargetRes_Name, TargetRes_Label, RG_ID, Sub_id, Sub_Name, Sub2RG_Edge_Label, RG_Name, RG2RES_Edge_Label, tostring(TargetNode_tags), tostring(RG_tags), tostring(Sub_tags)
+            | join ( // get neighbor_Resources from the RG
+                    ExposureGraphEdges | where EdgeLabel == "contains" | where SourceNodeLabel == "resourcegroups" | project TargetNodeName, neighbor_ResLabel=TargetNodeLabel,  neighbor_ResNodeId=TargetNodeId, SourceNodeId) on $left.RG_ID == $right.SourceNodeId
+                    | extend resource_label = strcat(" ", TargetNodeName, "(", neighbor_ResLabel, ") ")
+                    | project-away SourceNodeId, TargetNodeName
+            | join ( ExposureGraphNodes | project NodeId, neighbor_Res_tags=NodeProperties.rawData.tags.tags) on $left.neighbor_ResNodeId == $right.NodeId
+                    | project-away NodeId, neighbor_ResNodeId, NodeId
+                    | summarize neighbor_Resources = strcat_array(make_list(resource_label), ", "),
+                        neighbor_Res_Tags = strcat_array(make_list(neighbor_Res_tags), ", ")
+                        by TargetRes_ID, TargetRes_Name, TargetRes_Label, RG_ID, Sub_id, Sub_Name, Sub2RG_Edge_Label, RG_Name, RG2RES_Edge_Label,
+                            tostring(TargetNode_tags), tostring(RG_tags), tostring(Sub_tags), tostring(neighbor_RGs), tostring(neighbor_RG_Tags), neighbor_ResLabel
+                    | project TargetResource_Name=TargetRes_Name,
+                              TargetResource_Label=TargetRes_Label,
+                              TargetResource_tags=TargetNode_tags,
+                              ResourceGroup_Name=RG_Name,
+                              ResourceGroup_tags=RG_tags,
+                              Subscription_tags=Sub_tags,
+                              list_of_neighbouring_resourcegroup_names=neighbor_RGs,
+                              list_of_neighbouring_resourcegroup_tags=neighbor_RG_Tags,
+                              neighboring_resource_label=neighbor_ResLabel,
+                              list_of_neighboring_resource_names=neighbor_Resources,
+                              list_of_neighboring_resource_tags=neighbor_Res_Tags;
+

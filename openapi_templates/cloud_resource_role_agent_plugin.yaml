@@ -93,5 +93,6 @@ SkillGroups:
                               list_of_neighbouring_resourcegroup_tags=neighbor_RG_Tags,
                               neighboring_resource_label=neighbor_ResLabel,
                               list_of_neighboring_resource_names=neighbor_Resources,
-                              list_of_neighboring_resource_tags=neighbor_Res_Tags;
+                              list_of_neighboring_resource_tags=neighbor_Res_Tags
+                    | where TargetResource_Label == neighboring_resource_label;
 
